@@ -1,28 +1,25 @@
 package com.example.SuViet.dto;
 
+import com.example.SuViet.model.Article;
+import com.example.SuViet.model.Comment;
+import com.example.SuViet.model.Period;
+import com.example.SuViet.model.Vote;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.stream.Collectors;
-import java.text.ParseException;
-
-
-import com.example.SuViet.model.Article;
-import com.example.SuViet.model.Comment;
-import com.example.SuViet.model.Period;
-import com.example.SuViet.model.RepliesComment;
-import com.example.SuViet.model.Vote;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class ArticleListDTO {
+public class ArticleDTO {
     private int articleID;
     private String title;
     private String context;
@@ -30,31 +27,14 @@ public class ArticleListDTO {
     private String createdDate;
     private boolean status;
     private int articleView;
-    private String fullName;
+    private UserDTO user;
     private int voteLevel;
     private String periodName;
-    private Collection<Comment> comments;
-    private Collection<RepliesComment> repliesComments;
+    private List<CommentDTO> comments;
+    private List<RepliesCommentDTO> repliesComments;
 
-    public ArticleListDTO(int articleID, String title, String context, String photo, String createdDate,
-                          boolean status, int articleView, String fullName, int voteLevel, String periodName,
-                          Collection<Comment> comments, Collection<RepliesComment> repliesComments) {
-        this.articleID = articleID;
-        this.title = title;
-        this.context = context;
-        this.photo = photo;
-        this.createdDate = createdDate;
-        this.status = status;
-        this.articleView = articleView;
-        this.fullName = fullName;
-        this.voteLevel = voteLevel;
-        this.periodName = periodName;
-        this.comments = comments;
-        this.repliesComments = repliesComments;
-    }
-
-    public static ArticleListDTO convertToDTO(Article article) {
-        ArticleListDTO dto = new ArticleListDTO();
+    public static ArticleDTO convertToDTO(Article article) {
+        ArticleDTO dto = new ArticleDTO();
         dto.setArticleID(article.getArticleID());
         dto.setTitle(article.getTitle());
         dto.setContext(article.getContext());
@@ -65,28 +45,34 @@ public class ArticleListDTO {
 
         dto.setStatus(article.isStatus());
         dto.setArticleView(article.getArticleView());
-        dto.setFullName(article.getUser().getFullname());
+        dto.setUser(UserDTO.convertToDTO(article.getUser()));
         dto.setVoteLevel(getAverageVoteLevel(article.getVotes()));
         dto.setPeriodName(getPeriodNames(article.getPeriods()));
-        dto.setComments(getCommentList(article.getComments()));
-        dto.setRepliesComments(getRepliesComments(article.getComments()));
+        dto.setComments(getCommentDTOList(article.getComments()));
+        dto.setRepliesComments(getRepliesCommentDTOList(article.getComments()));
         return dto;
     }
-
 
     public Article convertToEntity() {
         Article article = new Article();
         article.setArticleID(this.articleID);
         article.setTitle(this.title);
+        article.setContext(this.context);
         article.setPhoto(this.photo);
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
             Date formattedDate = dateFormat.parse(this.createdDate);
             article.setCreatedDate(formattedDate);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+        article.setStatus(this.status);
         article.setArticleView(this.articleView);
+        article.setUser(this.user.convertToEntity());
+        // Set other fields as needed
+
         return article;
     }
 
@@ -111,5 +97,35 @@ public class ArticleListDTO {
         return periods.stream()
                 .map(Period::getPeriodName)
                 .collect(Collectors.joining(", "));
+    }
+
+    // private static List<CommentDTO> getCommentDTOList(Collection<Comment> comments) {
+    //     return comments.stream()
+    //             .map(CommentDTO::convertToDTO)
+    //             .collect(Collectors.toList());
+    // }
+
+    // private static List<RepliesCommentDTO> getRepliesCommentDTOList(Collection<Comment> comments) {
+    //     return comments.stream()
+    //             .flatMap(comment -> comment.getRepliesComments().stream())
+    //             .map(RepliesCommentDTO::convertToDTO)
+    //             .collect(Collectors.toList());
+    // }
+
+    private static List<CommentDTO> getCommentDTOList(Collection<Comment> comments) {
+        return comments.stream()
+                .map(CommentDTO::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    private static List<RepliesCommentDTO> getRepliesCommentDTOList(Collection<Comment> comments) {
+        List<RepliesCommentDTO> repliesCommentDTOs = new ArrayList<>();
+
+        comments.forEach(comment -> {
+            comment.getRepliesComments()
+                .forEach(repliesComment -> repliesCommentDTOs.add(RepliesCommentDTO.convertToDTO(repliesComment)));
+        });
+
+        return repliesCommentDTOs;
     }
 }

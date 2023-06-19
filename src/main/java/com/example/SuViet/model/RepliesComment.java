@@ -31,6 +31,8 @@ public class RepliesComment {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JoinColumn(name = "CommentID")
     private Comment comment;
 
@@ -40,11 +42,13 @@ public class RepliesComment {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ArticleID")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Article article;
+    
 
     public RepliesComment(String commentText, Date createdDate, boolean enabled) {
         this.commentText = commentText;

@@ -13,7 +13,6 @@ import java.util.Date;
 @ToString
 @EqualsAndHashCode
 @Entity
-@Data
 @Table(name = "tblArticles")
 public class Article {
     @Id
@@ -42,8 +41,7 @@ public class Article {
     private boolean enabled;
 
     public Article(int articleID, String title, String context, String photo, Date createdDate, boolean status,
-            int articleView, boolean enabled, Collection<Comment> comments, User user, Collection<Vote> votes,
-            Collection<Period> periods) {
+            int articleView, boolean enabled) {
         this.articleID = articleID;
         this.title = title;
         this.context = context;
@@ -52,13 +50,9 @@ public class Article {
         this.status = status;
         this.articleView = articleView;
         this.enabled = enabled;
-        this.comments = comments;
-        this.user = user;
-        this.votes = votes;
-        this.periods = periods;
     }
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Collection<Comment> comments;
